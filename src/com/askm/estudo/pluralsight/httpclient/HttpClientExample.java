@@ -1,5 +1,8 @@
 package com.askm.estudo.pluralsight.httpclient;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -49,13 +52,23 @@ public class HttpClientExample {
         return httpResponse.body();
     }
 
-    public static String olhoVivoCorredores() throws InterruptedException, ExecutionException {
+    public static CorredorOnibus[] olhoVivoCorredores() throws InterruptedException, ExecutionException, IOException {
 
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(HttpClientExample.apiCorredores))
                 .GET()
                 .build();
         CompletableFuture<HttpResponse<String>> completableFuture = HttpClientExample.httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString());
-        return completableFuture.thenApply(HttpResponse::body).get();
+
+        String corredores = completableFuture.thenApply(HttpResponse::body).get();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
+        CorredorOnibus[] corredoresOnibus = objectMapper.readValue(corredores, CorredorOnibus[].class);
+
+        return corredoresOnibus;
+
+
+
     }
 
     public static String getFreeExchangeRate() throws IOException, InterruptedException {
